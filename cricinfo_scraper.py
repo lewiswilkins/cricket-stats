@@ -15,7 +15,7 @@ def get_tables(cricinfo_id):
         - tables:  bs4.element.ResultSet
         """
     
-    url = "http://stats.espncricinfo.com/ci/engine/player/{0}.html?class=2;template=results;type=batting;view=innings".format(cricinfo_id)
+    url = f"http://stats.espncricinfo.com/ci/engine/player/{cricinfo_id}.html?class=2;template=results;type=batting;view=innings"
     try:
         html = urlopen(url)
         soup = BeautifulSoup(html, 'lxml')
@@ -36,7 +36,7 @@ def get_name(cricinfo_id, no_space=False):
         - name: name of player as a str
         """
     
-    url = "http://www.espncricinfo.com/england/content/player/{0}.html".format(cricinfo_id)
+    url = f"http://www.espncricinfo.com/england/content/player/{cricinfo_id}.html"
     try:
         html = urlopen(url)
     except errors.HTTPError:
@@ -111,9 +111,11 @@ def create_player_table(cursor, table_name, df):
     type_map = {np.float64: "FLOAT", 
                np.int64: "INT",
                str: "VARCHAR(255)"}
-    sql_command = "CREATE TABLE IF NOT EXISTS {0} (".format(table_name)
+    sql_command = f"CREATE TABLE IF NOT EXISTS {table_name} (".format(table_name)
     for i,col in enumerate(df.columns[1:]):
-        sql_command += "'{0}' {1}".format(col.replace(" ", "_"), type_map[type(df[col][0])])
+        col = col.replace(" ", "_")
+        col_type = type_map[type(df[col][0])]
+        sql_command += f"'{col}' {col_type}"
         if i != len(df.columns[1:])-1:
             sql_command += ", "
     sql_command += ");"
@@ -123,12 +125,12 @@ def create_player_table(cursor, table_name, df):
 
 def insert_player_data(cursor, table_name, df):
     for index,row in df.iterrows():
-        sql_command = "INSERT INTO {0} VALUES (".format(table_name)
+        sql_command = f"INSERT INTO {table_name} VALUES ("
         for i,col in enumerate(df.columns[1:]):
             if type(row[col]) == str:
-                sql_command += '"{0}"'.format(row[col])
+                sql_command += f'"{row[col]}"'
             else:
-                sql_command += "{0}".format(row[col])
+                sql_command += f"{row[col]}"
             if i != len(df.columns[1:])-1:
                 sql_command += ", "
         sql_command += ");"
